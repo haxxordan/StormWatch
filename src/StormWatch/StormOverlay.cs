@@ -18,12 +18,14 @@ namespace StormWatch
         private Image _panel;
         private Image _glow;
         private Image _accent;
+        private Image _brandBadge;
         private TMP_Text _titleText;
         private TMP_Text _subtitleText;
         private TMP_Text _countText;
         private TMP_Text _turnText;
         private RectTransform _countRect;
         private TMP_FontAsset _font;
+        private bool _usingMagicFont;
         private Sprite _panelSprite;
         private Sprite _glowSprite;
         private Texture2D _panelTexture;
@@ -41,7 +43,7 @@ namespace StormWatch
 
         internal void Initialize(float x, float y, float scale, float opacity)
         {
-            _font = FindArenaFont();
+            _font = FindArenaFont(out _usingMagicFont);
             _panelSprite = CreateRoundedSprite(
                 64, 15f,
                 new Color(0.055f, 0.058f, 0.105f, 0.97f),
@@ -70,9 +72,9 @@ namespace StormWatch
 
             var card = NewUiObject("Card", _root.transform);
             _rootRect = card.GetComponent<RectTransform>();
-            _rootRect.anchorMin = new Vector2(1f, 1f);
-            _rootRect.anchorMax = new Vector2(1f, 1f);
-            _rootRect.pivot = new Vector2(1f, 1f);
+            _rootRect.anchorMin = new Vector2(1f, 0f);
+            _rootRect.anchorMax = new Vector2(1f, 0f);
+            _rootRect.pivot = new Vector2(1f, 0f);
             _rootRect.sizeDelta = new Vector2(252f, 106f);
 
             var glow = NewUiObject("Glow", card.transform);
@@ -104,15 +106,24 @@ namespace StormWatch
             _accent.color = Muted;
             _accent.raycastTarget = false;
 
-            _titleText = CreateText(panel.transform, "STORMWATCH", 16, FontStyles.Bold, Cyan);
-            SetRect(_titleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(31f, -20f), new Vector2(132f, 25f), new Vector2(0f, 1f));
-            _titleText.alignment = TextAlignmentOptions.Left;
+            var brandBadge = NewUiObject("BrandBadge", panel.transform);
+            var brandBadgeRect = brandBadge.GetComponent<RectTransform>();
+            SetRect(brandBadgeRect, new Vector2(1f, 0f), new Vector2(1f, 0f),
+                new Vector2(-12f, 11f), new Vector2(86f, 21f), new Vector2(1f, 0f));
+            _brandBadge = brandBadge.AddComponent<Image>();
+            _brandBadge.sprite = _panelSprite;
+            _brandBadge.type = Image.Type.Sliced;
+            _brandBadge.color = new Color(0.12f, 0.25f, 0.36f, 0.92f);
+            _brandBadge.raycastTarget = false;
 
-            _subtitleText = CreateText(panel.transform, "SPELLS CAST THIS TURN", 11,
+            _titleText = CreateText(brandBadge.transform, "STORMWATCH", 9, FontStyles.Bold, Cyan);
+            Stretch(_titleText.rectTransform, 2f);
+            _titleText.alignment = TextAlignmentOptions.Center;
+
+            _subtitleText = CreateText(panel.transform, "STORM COUNT", 11,
                 FontStyles.Bold, new Color(0.61f, 0.64f, 0.76f, 1f));
             SetRect(_subtitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(31f, -47f), new Vector2(145f, 20f), new Vector2(0f, 1f));
+                new Vector2(31f, -31f), new Vector2(145f, 20f), new Vector2(0f, 1f));
             _subtitleText.alignment = TextAlignmentOptions.Left;
 
             _turnText = CreateText(panel.transform, "TURN —", 10, FontStyles.Bold,
@@ -124,7 +135,7 @@ namespace StormWatch
             _countText = CreateText(panel.transform, "0", 54, FontStyles.Bold, Color.white);
             _countRect = _countText.rectTransform;
             SetRect(_countRect, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
-                new Vector2(-25f, 0f), new Vector2(72f, 76f), new Vector2(1f, 0.5f));
+                new Vector2(-25f, 14f), new Vector2(72f, 68f), new Vector2(1f, 0.5f));
             _countText.alignment = TextAlignmentOptions.Right;
             _countText.outlineColor = new Color32(38, 140, 204, 90);
             _countText.outlineWidth = 0.12f;
@@ -200,6 +211,11 @@ namespace StormWatch
                 _countRect.localScale = Vector3.one * (1f + easedPulse * 0.2f);
 
             var accent = AccentFor(_count);
+            if (_brandBadge != null)
+                _brandBadge.color = Color.Lerp(
+                    new Color(0.12f, 0.25f, 0.36f, 0.92f),
+                    new Color(accent.r, accent.g, accent.b, 0.92f),
+                    0.15f + easedPulse * 0.1f);
             if (_glow != null)
             {
                 _glow.color = new Color(
@@ -248,9 +264,12 @@ namespace StormWatch
 
         private void EnsureArenaFont()
         {
-            if (_font != null) return;
-            _font = FindArenaFont();
-            if (_font == null) return;
+            var preferredFont = FindArenaFont(out var isMagicFont);
+            if (preferredFont == null || (ReferenceEquals(preferredFont, _font) && isMagicFont == _usingMagicFont))
+                return;
+
+            _font = preferredFont;
+            _usingMagicFont = isMagicFont;
 
             if (_titleText != null) _titleText.font = _font;
             if (_subtitleText != null) _subtitleText.font = _font;
@@ -258,14 +277,58 @@ namespace StormWatch
             if (_countText != null) _countText.font = _font;
         }
 
-        private static TMP_FontAsset FindArenaFont()
+        private static TMP_FontAsset FindArenaFont(out bool isMagicFont)
         {
+            isMagicFont = false;
+
+            var fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
+            if (fonts != null)
+            {
+                foreach (var font in fonts)
+                {
+                    if (font != null && IsMagicFont(font.name))
+                    {
+                        isMagicFont = true;
+                        return font;
+                    }
+                }
+            }
+
+            var legacyFonts = Resources.FindObjectsOfTypeAll<Font>();
+            if (legacyFonts != null)
+            {
+                foreach (var legacyFont in legacyFonts)
+                {
+                    if (legacyFont == null || !IsMagicFont(legacyFont.name)) continue;
+
+                    try
+                    {
+                        var created = TMP_FontAsset.CreateFontAsset(legacyFont);
+                        if (created != null)
+                        {
+                            created.name = "StormWatch_Beleren";
+                            isMagicFont = true;
+                            return created;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Plugin.Log.LogDebug($"Could not create Beleren TMP font: {ex.Message}");
+                    }
+                }
+            }
+
             var sample = FindObjectOfType<TMP_Text>();
             if (sample != null && sample.font != null)
                 return sample.font;
 
-            var fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
             return fonts != null && fonts.Length > 0 ? fonts[0] : null;
+        }
+
+        private static bool IsMagicFont(string name)
+        {
+            return !string.IsNullOrEmpty(name) &&
+                   name.IndexOf("Beleren", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static GameObject NewUiObject(string name, Transform parent)

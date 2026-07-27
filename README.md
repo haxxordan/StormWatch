@@ -61,7 +61,11 @@ After launching once, configuration is written to:
 MTGA/BepInEx/config/dev.deep.mtga.stormwatch.cfg
 ```
 
-The configuration controls visibility, top-right offsets, scale, and opacity.
+The configuration controls visibility, offsets above Arena's action controls, scale,
+opacity, and the toggle shortcut. In Arena, open **Options → Gameplay** and use
+the native-looking **StormWatch Overlay** switch to show or hide it. Press **F8**
+during a match for the same action; the choice is saved and F8 can be changed in
+the configuration.
 
 ## Build and test
 

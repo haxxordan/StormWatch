@@ -13,7 +13,7 @@ namespace StormWatch
     {
         public const string PluginGuid = "dev.deep.mtga.stormwatch";
         public const string PluginName = "StormWatch";
-        public const string PluginVersion = "0.1.1";
+        public const string PluginVersion = "0.1.8";
 
         internal static ManualLogSource Log { get; private set; }
 
@@ -23,10 +23,13 @@ namespace StormWatch
 
             var enabled = Config.Bind("General", "Enabled", true,
                 "Show StormWatch while a game is in progress.");
-            var positionX = Config.Bind("Appearance", "PositionX", -34f,
-                "Horizontal offset in reference pixels from the top-right corner.");
-            var positionY = Config.Bind("Appearance", "PositionY", -112f,
-                "Vertical offset in reference pixels from the top-right corner.");
+            var toggleShortcut = Config.Bind("General", "Toggle Shortcut",
+                new KeyboardShortcut(KeyCode.F8),
+                "Show or hide StormWatch. The setting is remembered between games.");
+            var positionX = Config.Bind("Above Action Controls Placement", "OffsetX", -30f,
+                "Horizontal offset in reference pixels from the lower-right corner.");
+            var positionY = Config.Bind("Above Action Controls Placement", "OffsetY", 232f,
+                "Vertical offset in reference pixels above the phase and action controls.");
             var scale = Config.Bind("Appearance", "Scale", 1f,
                 new ConfigDescription("Overlay scale.", new AcceptableValueRange<float>(0.65f, 1.75f)));
             var opacity = Config.Bind("Appearance", "Opacity", 0.96f,
@@ -36,7 +39,7 @@ namespace StormWatch
             persistentObject.hideFlags = HideFlags.HideAndDontSave;
             DontDestroyOnLoad(persistentObject);
             var runtime = persistentObject.AddComponent<StormWatchRuntime>();
-            runtime.Initialize(enabled, positionX, positionY, scale, opacity);
+            runtime.Initialize(enabled, toggleShortcut, positionX, positionY, scale, opacity);
 
             var harmony = new Harmony(PluginGuid);
             harmony.PatchAll(typeof(Plugin).Assembly);
@@ -53,6 +56,7 @@ namespace StormWatch
         private readonly StormStateTracker _tracker = new StormStateTracker();
         private StormOverlay _overlay;
         private ConfigEntry<bool> _enabled;
+        private ConfigEntry<KeyboardShortcut> _toggleShortcut;
         private ConfigEntry<float> _positionX;
         private ConfigEntry<float> _positionY;
         private ConfigEntry<float> _scale;
@@ -60,6 +64,7 @@ namespace StormWatch
 
         internal void Initialize(
             ConfigEntry<bool> enabled,
+            ConfigEntry<KeyboardShortcut> toggleShortcut,
             ConfigEntry<float> positionX,
             ConfigEntry<float> positionY,
             ConfigEntry<float> scale,
@@ -73,6 +78,7 @@ namespace StormWatch
 
             Instance = this;
             _enabled = enabled;
+            _toggleShortcut = toggleShortcut;
             _positionX = positionX;
             _positionY = positionY;
             _scale = scale;
@@ -90,12 +96,28 @@ namespace StormWatch
         {
             if (_overlay == null) return;
 
+            if (_toggleShortcut.Value.IsDown())
+            {
+                SetOverlayEnabled(!_enabled.Value, "shortcut");
+            }
+
             _overlay.SetEnabled(_enabled.Value);
             _overlay.ApplyLayout(
                 _positionX.Value,
                 _positionY.Value,
                 _scale.Value,
                 _opacity.Value);
+        }
+
+        internal bool IsOverlayEnabled => _enabled == null || _enabled.Value;
+
+        internal void SetOverlayEnabled(bool enabled, string source)
+        {
+            if (_enabled == null) return;
+
+            _enabled.Value = enabled;
+            _overlay?.SetEnabled(enabled);
+            Plugin.Log.LogInfo($"overlay {(enabled ? "shown" : "hidden")} via {source}");
         }
 
         internal void HandleGreMessage(GREToClientMessage message)
@@ -152,6 +174,16 @@ namespace StormWatch
             // This postfix only observes the already-received protobuf. It does not
             // replace the message, mutate it, or alter MatchManager state.
             StormWatchRuntime.Instance?.HandleGreMessage(__0);
+        }
+    }
+
+    [HarmonyPatch(typeof(SettingsPanelGameplay), "ShowPanel")]
+    internal static class SettingsPanelGameplayPatch
+    {
+        [HarmonyPostfix]
+        private static void AfterShowPanel(SettingsPanelGameplay __instance)
+        {
+            StormWatchSettingsToggle.TryMount(__instance);
         }
     }
 }
