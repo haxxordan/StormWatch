@@ -13,7 +13,7 @@ namespace StormWatch
     {
         public const string PluginGuid = "dev.deep.mtga.stormwatch";
         public const string PluginName = "StormWatch";
-        public const string PluginVersion = "0.1.10";
+        public const string PluginVersion = "0.1.11";
 
         internal static ManualLogSource Log { get; private set; }
 

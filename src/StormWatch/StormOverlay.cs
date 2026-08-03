@@ -119,10 +119,10 @@ namespace StormWatch
             Stretch(_titleText.rectTransform, 2f);
             _titleText.alignment = TextAlignmentOptions.Center;
 
-            _turnText = CreateText(panel.transform, "TURN —", 10, FontStyles.Bold,
+            _turnText = CreateText(panel.transform, "TURN —", 8, FontStyles.Bold,
                 new Color(0.48f, 0.51f, 0.64f, 1f));
             SetRect(_turnText.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f),
-                new Vector2(19f, 15f), new Vector2(55f, 20f), new Vector2(0f, 0f));
+                new Vector2(19f, 11f), new Vector2(55f, 20f), new Vector2(0f, 0f));
             _turnText.alignment = TextAlignmentOptions.Left;
 
             _countText = CreateText(panel.transform, "0", 48, FontStyles.Bold, Color.white);
