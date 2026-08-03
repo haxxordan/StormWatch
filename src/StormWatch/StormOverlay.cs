@@ -74,7 +74,7 @@ namespace StormWatch
             _rootRect.anchorMin = new Vector2(1f, 0f);
             _rootRect.anchorMax = new Vector2(1f, 0f);
             _rootRect.pivot = new Vector2(1f, 0f);
-            _rootRect.sizeDelta = new Vector2(132f, 106f);
+            _rootRect.sizeDelta = new Vector2(176f, 106f);
 
             var glow = NewUiObject("Glow", card.transform);
             Stretch(glow.GetComponent<RectTransform>(), -14f);
@@ -127,9 +127,9 @@ namespace StormWatch
 
             _countText = CreateText(panel.transform, "0", 48, FontStyles.Bold, Color.white);
             _countRect = _countText.rectTransform;
-            SetRect(_countRect, new Vector2(1f, 1f), new Vector2(1f, 1f),
-                new Vector2(-15f, -10f), new Vector2(70f, 66f), new Vector2(1f, 1f));
-            _countText.alignment = TextAlignmentOptions.Right;
+            SetRect(_countRect, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                new Vector2(0f, -8f), new Vector2(88f, 66f), new Vector2(0.5f, 1f));
+            _countText.alignment = TextAlignmentOptions.Center;
             _countText.outlineColor = new Color32(38, 140, 204, 90);
             _countText.outlineWidth = 0.12f;
 

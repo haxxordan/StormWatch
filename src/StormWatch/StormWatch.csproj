@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>StormWatch</AssemblyName>
     <RootNamespace>StormWatch</RootNamespace>
-    <Version>0.1.9</Version>
+    <Version>0.1.10</Version>
     <Description>StormWatch: a polished, read-only storm counter overlay for MTG Arena.</Description>
     <GameDir Condition="'$(GameDir)' == ''">/home/deep/.local/share/Steam/steamapps/common/MTGA</GameDir>
     <ManagedDir>$(GameDir)/MTGA_Data/Managed</ManagedDir>
