@@ -20,7 +20,6 @@ namespace StormWatch
         private Image _accent;
         private Image _brandBadge;
         private TMP_Text _titleText;
-        private TMP_Text _subtitleText;
         private TMP_Text _countText;
         private TMP_Text _turnText;
         private RectTransform _countRect;
@@ -75,7 +74,7 @@ namespace StormWatch
             _rootRect.anchorMin = new Vector2(1f, 0f);
             _rootRect.anchorMax = new Vector2(1f, 0f);
             _rootRect.pivot = new Vector2(1f, 0f);
-            _rootRect.sizeDelta = new Vector2(252f, 106f);
+            _rootRect.sizeDelta = new Vector2(132f, 106f);
 
             var glow = NewUiObject("Glow", card.transform);
             Stretch(glow.GetComponent<RectTransform>(), -14f);
@@ -109,33 +108,27 @@ namespace StormWatch
             var brandBadge = NewUiObject("BrandBadge", panel.transform);
             var brandBadgeRect = brandBadge.GetComponent<RectTransform>();
             SetRect(brandBadgeRect, new Vector2(1f, 0f), new Vector2(1f, 0f),
-                new Vector2(-12f, 11f), new Vector2(86f, 21f), new Vector2(1f, 0f));
+                new Vector2(-10f, 11f), new Vector2(78f, 20f), new Vector2(1f, 0f));
             _brandBadge = brandBadge.AddComponent<Image>();
             _brandBadge.sprite = _panelSprite;
             _brandBadge.type = Image.Type.Sliced;
             _brandBadge.color = new Color(0.12f, 0.25f, 0.36f, 0.92f);
             _brandBadge.raycastTarget = false;
 
-            _titleText = CreateText(brandBadge.transform, "STORMWATCH", 9, FontStyles.Bold, Cyan);
+            _titleText = CreateText(brandBadge.transform, "STORMWATCH", 8, FontStyles.Bold, Cyan);
             Stretch(_titleText.rectTransform, 2f);
             _titleText.alignment = TextAlignmentOptions.Center;
-
-            _subtitleText = CreateText(panel.transform, "STORM COUNT", 11,
-                FontStyles.Bold, new Color(0.61f, 0.64f, 0.76f, 1f));
-            SetRect(_subtitleText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(31f, -31f), new Vector2(145f, 20f), new Vector2(0f, 1f));
-            _subtitleText.alignment = TextAlignmentOptions.Left;
 
             _turnText = CreateText(panel.transform, "TURN —", 10, FontStyles.Bold,
                 new Color(0.48f, 0.51f, 0.64f, 1f));
             SetRect(_turnText.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 0f),
-                new Vector2(31f, 15f), new Vector2(112f, 20f), new Vector2(0f, 0f));
+                new Vector2(19f, 15f), new Vector2(55f, 20f), new Vector2(0f, 0f));
             _turnText.alignment = TextAlignmentOptions.Left;
 
-            _countText = CreateText(panel.transform, "0", 54, FontStyles.Bold, Color.white);
+            _countText = CreateText(panel.transform, "0", 48, FontStyles.Bold, Color.white);
             _countRect = _countText.rectTransform;
-            SetRect(_countRect, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
-                new Vector2(-25f, 14f), new Vector2(72f, 68f), new Vector2(1f, 0.5f));
+            SetRect(_countRect, new Vector2(1f, 1f), new Vector2(1f, 1f),
+                new Vector2(-15f, -10f), new Vector2(70f, 66f), new Vector2(1f, 1f));
             _countText.alignment = TextAlignmentOptions.Right;
             _countText.outlineColor = new Color32(38, 140, 204, 90);
             _countText.outlineWidth = 0.12f;
@@ -272,7 +265,6 @@ namespace StormWatch
             _usingMagicFont = isMagicFont;
 
             if (_titleText != null) _titleText.font = _font;
-            if (_subtitleText != null) _subtitleText.font = _font;
             if (_turnText != null) _turnText.font = _font;
             if (_countText != null) _countText.font = _font;
         }

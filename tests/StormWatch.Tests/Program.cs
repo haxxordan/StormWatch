@@ -8,6 +8,7 @@ var tests = new (string Name, System.Action Run)[]
     ("counts only CastSpell zone transfers", CountsOnlySpells),
     ("deduplicates annotation IDs", DeduplicatesAnnotations),
     ("resets on each turn", ResetsOnTurn),
+    ("numbers turns separately for each player", NumbersTurnsPerPlayer),
     ("counts a spell in the first update of a turn", CountsAfterTurnReset),
     ("hides after game completion", HidesAtGameEnd),
     ("clears deduplication state for the next game", ClearsForNextGame),
@@ -91,6 +92,14 @@ static void CountsAfterTurnReset()
     True(update.Incremented);
 }
 
+static void NumbersTurnsPerPlayer()
+{
+    var tracker = new StormStateTracker();
+    Equal((uint)1, tracker.Process(State(gameInfo: Game("match-a", 1), turn: 1, activePlayer: 11)).Turn);
+    Equal((uint)1, tracker.Process(State(turn: 2, activePlayer: 22)).Turn);
+    Equal((uint)2, tracker.Process(State(turn: 3, activePlayer: 11)).Turn);
+}
+
 static void HidesAtGameEnd()
 {
     var tracker = StartedTracker();
@@ -129,6 +138,7 @@ static StormStateTracker StartedTracker()
 static GREToClientMessage State(
     GameInfo gameInfo = null,
     uint? turn = null,
+    uint? activePlayer = null,
     AnnotationInfo annotation = null)
 {
     var state = new GameStateMessage
@@ -138,7 +148,11 @@ static GREToClientMessage State(
         GameInfo = gameInfo,
     };
     if (turn.HasValue)
-        state.TurnInfo = new TurnInfo { TurnNumber = turn.Value };
+        state.TurnInfo = new TurnInfo
+        {
+            TurnNumber = turn.Value,
+            ActivePlayer = activePlayer ?? 0,
+        };
     if (annotation != null)
         state.Annotations.Add(annotation);
 

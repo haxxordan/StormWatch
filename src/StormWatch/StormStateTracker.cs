@@ -10,6 +10,8 @@ namespace StormWatch
         private string _matchId = string.Empty;
         private uint _gameNumber;
         private uint _turn;
+        private uint _displayTurn;
+        private readonly Dictionary<string, uint> _turnsByPlayer = new Dictionary<string, uint>();
         private int _count;
         private bool _inGame;
 
@@ -40,8 +42,10 @@ namespace StormWatch
                     _matchId = incomingMatchId;
                     _gameNumber = info.GameNumber;
                     _turn = 0;
+                    _displayTurn = 0;
                     _count = 0;
                     _processedAnnotationIds.Clear();
+                    _turnsByPlayer.Clear();
                     reset = true;
                     changed = true;
                 }
@@ -62,6 +66,11 @@ namespace StormWatch
                 if (incomingTurn != _turn)
                 {
                     _turn = incomingTurn;
+                    var activePlayer = gameState.TurnInfo.ActivePlayer.ToString();
+                    if (!_turnsByPlayer.TryGetValue(activePlayer, out var playerTurn))
+                        playerTurn = 0;
+                    _displayTurn = playerTurn + 1;
+                    _turnsByPlayer[activePlayer] = _displayTurn;
                     _count = 0;
                     reset = true;
                     changed = true;
@@ -84,7 +93,7 @@ namespace StormWatch
             }
 
             return changed
-                ? new StormUpdate(_count, _turn, _inGame, incremented, reset)
+                ? new StormUpdate(_count, _displayTurn, _inGame, incremented, reset)
                 : StormUpdate.None;
         }
 
